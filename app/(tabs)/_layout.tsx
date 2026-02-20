@@ -16,7 +16,8 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         // Optional: improves the look on iOS by shifting icons slightly
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' }, 
+        sceneStyle: { flex: 1, backgroundColor: 'white' },
       }}>
       <Tabs.Screen
         name="index"

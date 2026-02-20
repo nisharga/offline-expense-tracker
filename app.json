@@ -28,7 +28,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/logo-new.png"
+      "favicon": "./assets/logo-new.png", 
+      "bundler": "metro" 
     },
     "plugins": [
       "expo-router",
