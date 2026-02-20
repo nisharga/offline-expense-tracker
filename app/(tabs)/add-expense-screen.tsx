@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-export default function HomeScreen() {
+export default function AddExpenseScreen() {
   return (
     <View>
-      <Text>Home Screen</Text>
+      <Text>AddExpense Screen</Text>
     </View>
   );
 }   

@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+offlineexpensetracker.app
+build-1771388090958.apk
+build-1771525173701.tar.gz
