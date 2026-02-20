@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.nisharga.sharetasking.offlineexpensetracker",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "This app uses FaceID to secure your financial data."
       }
     },
     "android": {
@@ -24,7 +25,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.nisharga.sharetasking.offlineexpensetracker"
+      "package": "com.nisharga.sharetasking.offlineexpensetracker",
+      "permissions": ["USE_BIOMETRIC", "USE_FINGERPRINT"]
     },
     "web": {
       "output": "static",
