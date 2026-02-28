@@ -5,8 +5,7 @@ export default function ExpenseListScreen() {
   return (
     <ScrollView className="flex-1 bg-gray-50" stickyHeaderIndices={[0]}>
          <PageHeader 
-           title="Expense List" 
-           
+           title="Expense List"  
          />
     </ScrollView>
   );
