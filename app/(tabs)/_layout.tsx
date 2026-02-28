@@ -4,6 +4,7 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
+import { COLORS } from '@/global/color';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { View } from 'react-native';
 
@@ -59,7 +60,7 @@ export default function TabLayout() {
         options={{
           tabBarIcon: ({ color,focused }) => (
             <View style={{
-              backgroundColor: '#2D3C59',  
+              backgroundColor: COLORS.primary,  
               width: 55,
               height: 55,
               borderRadius: 28,
@@ -67,7 +68,7 @@ export default function TabLayout() {
               alignItems: 'center',
               marginBottom: 20,  
               elevation: 5,
-              shadowColor: '#2D3C59',
+              shadowColor: COLORS.primary,  
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.3,
               shadowRadius: 5,
