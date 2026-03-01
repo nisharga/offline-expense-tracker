@@ -12,10 +12,9 @@ interface PageHeaderProps {
 export const PageHeader = ({ title, showBackButton, rightElement }: PageHeaderProps) => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-
   return (
     <View 
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }} 
+      style={{ paddingTop: 10, paddingBottom: 20 }} 
       className="bg-white border-b border-gray-100 shadow-sm flex-row items-center justify-center "
     >
      <Text className="text-xl font-bold text-gray-900">{title}</Text>
