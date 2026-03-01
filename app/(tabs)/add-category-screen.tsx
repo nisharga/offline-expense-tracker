@@ -4,199 +4,178 @@ import CustomModal from "@/global/custom-modal";
 import { PageHeader } from "@/global/page-header";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from "react";
-import { Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Modal from 'react-native-modal';
 
- 
-export default function AddCategoryScreen() { 
+export default function AddCategoryScreen() {
   const [categories, setCategories] = useState([]);
-  console.log('categories', categories);
-
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // 1. Add a state to force re-render
-  const [refresh, setRefresh] = useState(0);
-
-  useEffect(() => {
-    loadCategories();
-  }, [refresh]);
-
+  // Function to load data
   const loadCategories = async () => {
     try {
-      const storedCategories = await getAllCategories(); 
+      const storedCategories = await getAllCategories();
       setCategories(Array.isArray(storedCategories) ? storedCategories : []);
     } catch (error) {
       console.error("Failed to load categories:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadCategories();
+  }, []);
+
+  // Effect triggered by refreshTrigger counter
+  useEffect(() => {
+    loadCategories();
+  }, [refreshTrigger]);
+
+  return (
+    <ScrollView 
+      className="flex-1 bg-gray-50" 
+      stickyHeaderIndices={[0]}
+      refreshControl={
+        <RefreshControl 
+          refreshing={refreshing} 
+          onRefresh={onRefresh} 
+          tintColor={COLORS.primary} 
+        />
+      }
+    >
+      <PageHeader title="Categories" />
+
+      {/* Passing setRefreshTrigger to Card */}
+      <CategoryCard setRefresh={setRefreshTrigger} />
+
+      <View className="px-4 py-2">
+        {categories.length > 0 ? (
+          categories.map((category: any, index) => (
+            <CategoryItem
+              key={category.id || category._id || index}
+              title={category.name || category.title || "Untitled"}
+              id={category.id || category._id}
+              // CRITICAL: Pass setRefresh to Item so delete triggers update
+              setRefresh={setRefreshTrigger} 
+            />
+          ))
+        ) : (
+          !loading && (
+            <View className="py-10 items-center">
+              <Text className="text-gray-400">No categories found</Text>
+            </View>
+          )
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+const CategoryCard = ({ setRefresh }: any) => {
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
+
+  const handleAddCategory = async () => {
+    if (!categoryName.trim()) return;
+    try {
+      // 1. Await the creation
+      await createCategory(categoryName.trim());
+      setCategoryName("");
+      setModalVisible(false);
+      // 2. Trigger parent refresh
+      setRefresh((prev: number) => prev + 1);
+    } catch (error) {
+      console.error("Error saving category:", error);
     }
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" stickyHeaderIndices={[0]}>
-        <PageHeader title="Categories" />
-        
-        <CategoryCard setRefresh={setRefresh} />
-
-        {/* 3. The Map Implementation */}
-        <View className="px-4 py-2">
-          {categories.length > 0 ? (
-            categories.map((category: any, index) => (
-              <CategoryItem 
-                key={category.id || category._id || index} // Use ID if available, else index
-                title={category.name || category.title || "Untitled"} 
-                id={category.id || category._id} 
-              />
-            ))
-          ) : (
-            /* 4. Empty State Handler */
-            !loading && (
-              <View className="py-10 items-center">
-                <Text className="text-gray-400">No categories found</Text>
-              </View>
-            )
-          )}
-        </View>
-    </ScrollView>
-  );
-}   
-
-
-const CategoryCard = ({setRefresh}: any) => { 
- const [isModalVisible, setModalVisible] = useState(false);
- const [categoryName, setCategoryName] = useState(""); 
-
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
-
-  const handleAddCategory = async () => {
-  if (!categoryName.trim()) return; // Don't add empty names
-  try {
-    createCategory(categoryName.trim());
-    setCategoryName(""); 
-    setModalVisible(false); 
-    setRefresh((prev: number) => prev + 1);
-  } catch (error) {
-    console.error("Error saving category:", error);
-  }
-};
-
-  return (
     <View className="p-6 rounded-xl shadow-sm mt-4 mx-6 overflow-hidden mb-4">
-      <LinearGradient
-        colors={[COLORS.black, COLORS.accent]} 
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={styles.background}
-      /> 
+      <LinearGradient colors={[COLORS.black, COLORS.accent]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.background} />
       <View className="flex-row items-center justify-between">
         <View>
-          <Text className="font-bold text-2xl text-white">Add Budget</Text>
-          <Text className="font-bold text-2xl text-white mb-2">Category</Text>
-           <TouchableOpacity onPress={toggleModal} style={{backgroundColor: COLORS.primary, padding: 10, borderRadius: 10, marginTop: 10}}>
+          <Text className="font-bold text-2xl text-white font-custom">Add Budget</Text>
+          <Text className="font-bold text-2xl text-white mb-2 font-custom">Category</Text>
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={{ backgroundColor: COLORS.primary, padding: 10, borderRadius: 10, marginTop: 10 }}>
             <View className="flex-row items-center justify-center gap-2">
               <Ionicons name="add-circle" size={24} color="white" />
-              <Text className="text-white font-bold text-lg"> 
-                Add New Categories
-              </Text>
+              <Text className="text-white font-bold text-lg">Add New Categories</Text>
             </View>
-           </TouchableOpacity> 
+          </TouchableOpacity>
         </View>
-        <Image 
-          source={require("../../assets/category.png")} 
-          style={{ width: 40, height: 40, tintColor: 'white' }} 
-        />
+        <Image source={require("../../assets/category.png")} style={{ width: 40, height: 40, tintColor: 'white' }} />
       </View>
 
-      <Modal isVisible={isModalVisible} className="mt-16">
-        <View style={{flex: 1}}>
-          <TouchableOpacity 
-            onPress={toggleModal} 
-            style={{
-              backgroundColor: COLORS.primary, 
-              color: COLORS.white, 
-              padding: 10, 
-              borderRadius: 10, 
-              marginTop: 10
-            }}>
-              <Text className="text-white font-bold text-lg text-center">Close</Text>
-          </TouchableOpacity> 
-          <View className="flex-1 justify-center items-center">
-            <LinearGradient
-                colors={[COLORS.primary, COLORS.secondary]} 
-                start={{ x: 0, y: -1 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.background}
-            />
-           <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <TextInput 
-              placeholder="Enter Category Name" 
-              placeholderTextColor="white" 
-              className="text-white font-bold text-lg text-center border border-white px-4 py-2 rounded-xl placeholder:text-white/60" 
+      <Modal isVisible={isModalVisible} onBackdropPress={() => setModalVisible(false)}>
+        <View className="bg-white p-6 rounded-2xl">
+            <Text className="text-xl font-bold mb-4 text-center">New Category</Text>
+            <TextInput
+              placeholder="Enter Category Name"
+              className="border border-gray-200 p-4 rounded-xl mb-4"
               value={categoryName}
               onChangeText={setCategoryName}
-            /> 
-            <TouchableOpacity onPress={() => handleAddCategory()} style={{backgroundColor: COLORS.primary, padding: 10, borderRadius: 10, marginTop: 10}}>
-              <Text className="text-white font-bold text-lg"> 
-                Add New Categories
-              </Text>
-            </TouchableOpacity> 
-           </KeyboardAvoidingView> 
-          </View>     
-        </View> 
-      </Modal> 
+              autoFocus
+            />
+            <View className="flex-row gap-2">
+                <TouchableOpacity className="flex-1 p-4 rounded-xl bg-gray-100" onPress={() => setModalVisible(false)}>
+                    <Text className="text-center font-bold text-gray-600">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="flex-2 p-4 rounded-xl" style={{backgroundColor: COLORS.primary}} onPress={handleAddCategory}>
+                    <Text className="text-center font-bold text-white px-4">Create</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+      </Modal>
     </View>
   );
-}
+};
 
-
-
-
-const CategoryItem = ({ title, id }: any) => {
+const CategoryItem = ({ title, id, setRefresh }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleConfirm = async () => {
-    await removeCategory(id)
-    setModalVisible(false)
-  }; 
+    try {
+        await removeCategory(id);
+        setModalVisible(false);
+        // CRITICAL: Trigger parent refresh after delete
+        setRefresh((prev: number) => prev + 1);
+    } catch (err) {
+        console.error("Delete failed", err);
+    }
+  };
 
-  
   return (
     <View className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
-    <View className="flex-row items-center gap-4">
-      <View style={{ width: 45, height: 45, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }}>
-        <Image 
-          source={require("../../assets/category.png")} 
-          style={{ width: 20, height: 20, tintColor: 'white' }} 
-        />
+      <View className="flex-row items-center gap-4">
+        <View style={{ width: 45, height: 45, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }}>
+          <Image source={require("../../assets/category.png")} style={{ width: 20, height: 20, tintColor: 'white' }} />
+        </View>
+        <Text className="text-lg font-bold text-gray-800">{title}</Text>
       </View>
-      <Text className="text-lg font-bold text-gray-800">{title}</Text>
-    </View>
-    <TouchableOpacity onPress={() => setModalVisible(true)}>
-      <Ionicons name="trash" size={24} color="red" />
-    </TouchableOpacity>
+      <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <Ionicons name="trash" size={24} color="red" />
+      </TouchableOpacity>
 
-    <CustomModal
-      visible={modalVisible}
-      title="Confirm Delete!"
-      message="Are you sure you want to delete this category?"
-      type="success" // success | error | warning | info | confirm
-      confirmText="Yes"
-      onConfirm={handleConfirm} 
-      onCancel={() => setModalVisible(false)} // only works if onlyConfirm = false
-    /> 
-  </View>
-  )
+      <CustomModal
+        visible={modalVisible}
+        title="Confirm Delete!"
+        message={`Are you sure you want to delete "${title}"?`}
+        type="confirm"
+        confirmText="Delete"
+        onConfirm={handleConfirm}
+        onCancel={() => setModalVisible(false)}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-  }
+  background: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }
 });
