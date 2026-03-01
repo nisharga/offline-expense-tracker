@@ -1,4 +1,4 @@
-import { createCategory, getAllCategories } from "@/context/category";
+import { createCategory, getAllCategories, removeCategory } from "@/context/category";
 import { COLORS } from "@/global/color";
 import CustomModal from "@/global/custom-modal";
 import { PageHeader } from "@/global/page-header";
@@ -12,11 +12,11 @@ import Modal from 'react-native-modal';
 export default function AddCategoryScreen() { 
   const [categories, setCategories] = useState([]);
   console.log('categories', categories);
-  
+
   const [loading, setLoading] = useState(true);
 
   // 1. Add a state to force re-render
-  const [refresh, setRefresh] = useState(false);
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
     loadCategories();
@@ -77,7 +77,7 @@ const CategoryCard = ({setRefresh}: any) => {
     createCategory(categoryName.trim());
     setCategoryName(""); 
     setModalVisible(false); 
-    setRefresh(true);
+    setRefresh((prev: number) => prev + 1);
   } catch (error) {
     console.error("Error saving category:", error);
   }
@@ -157,15 +157,12 @@ const CategoryCard = ({setRefresh}: any) => {
 const CategoryItem = ({ title, id }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleConfirm = () => {
-    console.log("Category pressed", id);
+  const handleConfirm = async () => {
+    await removeCategory(id)
     setModalVisible(false)
   }; 
 
-  const handlePress = (id: string) => {
-    console.log("Category pressed", id);
-    setModalVisible(true)
-  };
+  
   return (
     <View className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
     <View className="flex-row items-center gap-4">
