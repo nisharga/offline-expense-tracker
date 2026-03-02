@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useState } from "react";
 import { Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Modal from 'react-native-modal';
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 export default function AddCategoryScreen() {
   const [categories, setCategories] = useState([]);
@@ -64,6 +65,7 @@ export default function AddCategoryScreen() {
               id={category.id || category._id}
               // CRITICAL: Pass setRefresh to Item so delete triggers update
               setRefresh={setRefreshTrigger} 
+              index={index}
             />
           ))
         ) : (
@@ -97,7 +99,7 @@ const CategoryCard = ({ setRefresh }: any) => {
   };
 
   return (
-    <View className="p-6 rounded-xl shadow-sm mt-4 mx-6 overflow-hidden mb-4">
+    <Animated.View entering={ZoomIn.duration(2000).springify()} className="p-6 rounded-xl shadow-sm mt-4 mx-6 overflow-hidden mb-4">
       <LinearGradient colors={[COLORS.black, COLORS.accent]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.background} />
       <View className="flex-row items-center justify-between">
         <View>
@@ -133,11 +135,11 @@ const CategoryCard = ({ setRefresh }: any) => {
             </View>
         </View>
       </Modal>
-    </View>
+    </Animated.View>
   );
 };
 
-const CategoryItem = ({ title, id, setRefresh }: any) => {
+const CategoryItem = ({ title, id, setRefresh, index }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleConfirm = async () => {
@@ -152,7 +154,7 @@ const CategoryItem = ({ title, id, setRefresh }: any) => {
   };
 
   return (
-    <View className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
+    <Animated.View entering={FadeInDown.duration(900).delay(index * 200).springify()} className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
       <View className="flex-row items-center gap-4">
         <View style={{ width: 45, height: 45, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }}>
           <Image source={require("../../assets/category.png")} style={{ width: 20, height: 20, tintColor: 'white' }} />
@@ -172,7 +174,7 @@ const CategoryItem = ({ title, id, setRefresh }: any) => {
         onConfirm={handleConfirm}
         onCancel={() => setModalVisible(false)}
       />
-    </View>
+    </Animated.View>
   );
 };
 

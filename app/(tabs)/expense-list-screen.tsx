@@ -4,6 +4,7 @@ import { PageHeader } from "@/global/page-header";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Image, ImageBackground, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown, FlipInYRight } from "react-native-reanimated";
 
 export default function ExpenseListScreen() { 
   return (
@@ -21,7 +22,11 @@ export default function ExpenseListScreen() {
       <Card totalExpense={9000} last30DaysExpense={1000}/>
 
       <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
-        category="Category 1" price="100"/> 
+        category="Category 1" price="100" index={1}/> 
+        <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
+        category="Category 1" price="100" index={2}/> 
+        <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
+        category="Category 1" price="100" index={3}/> 
     </ScrollView>
   );
 }
@@ -29,7 +34,7 @@ export default function ExpenseListScreen() {
  
 const Card = ({totalExpense, last30DaysExpense}: {totalExpense: number, last30DaysExpense: number}) => {
   return (
-    <View className="mx-6 mb-4"> 
+    <Animated.View entering={FlipInYRight.duration(600)} className="mx-6 mb-4"> 
       <View className="h-60 w-full rounded-xl mt-6 overflow-hidden relative">
     
         <ImageBackground
@@ -67,13 +72,13 @@ const Card = ({totalExpense, last30DaysExpense}: {totalExpense: number, last30Da
         <View className="w-8 h-8 rounded-full bg-white absolute bottom-24 -left-4"></View>
         <View className="w-8 h-8 rounded-full bg-white absolute bottom-24 -right-4"></View>
       </View>
-    </View> 
+    </Animated.View> 
   )
 }
 
 
 
-const ExpenseItem = ({ title, id, setRefresh, price, category }: any) => {
+const ExpenseItem = ({ title, id, setRefresh, price, category, index }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleConfirm = async () => {
@@ -89,7 +94,7 @@ const ExpenseItem = ({ title, id, setRefresh, price, category }: any) => {
   };
 
   return (
-    <View className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
+    <Animated.View entering={FadeInDown.duration(900).delay(index * 200).springify()} className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
       <View className="flex-row items-center gap-4">
         <View style={{ width: 45, height: 45, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }}>
           <Image source={require("../../assets/expense.png")} style={{ width: 24, height: 24, tintColor: 'white' }} />
@@ -115,6 +120,6 @@ const ExpenseItem = ({ title, id, setRefresh, price, category }: any) => {
         onConfirm={handleConfirm}
         onCancel={() => setModalVisible(false)}
       />
-    </View>
+    </Animated.View>
   );
 };

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import Animated, { ZoomInEasyDown } from "react-native-reanimated";
 
 export default function AddExpenseScreen() {
   const [expenseName, setExpenseName] = useState("");
@@ -86,7 +87,7 @@ export default function AddExpenseScreen() {
     >
       <PageHeader title="Add Expense" />
 
-      <View className="px-6 pt-6">
+      <Animated.View entering={ZoomInEasyDown.duration(700).springify().delay(100)} className="px-6 pt-6">
         <Text className="text-gray-500 font-medium mb-2 uppercase text-xs tracking-widest">
           Expense Name
         </Text>
@@ -172,7 +173,7 @@ export default function AddExpenseScreen() {
             Save Expense
           </Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       <CustomModal
           visible={modalVisible}
