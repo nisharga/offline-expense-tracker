@@ -1,5 +1,9 @@
+import { COLORS } from "@/global/color";
+import CustomModal from "@/global/custom-modal";
 import { PageHeader } from "@/global/page-header";
-import { ImageBackground, ScrollView, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { Image, ImageBackground, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function ExpenseListScreen() { 
   return (
@@ -15,6 +19,9 @@ export default function ExpenseListScreen() {
          <View className="w-full h-[20px] rounded-b-[20px] bg-white"></View>
 
       <Card totalExpense={9000} last30DaysExpense={1000}/>
+
+      <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
+        category="Category 1" price="100"/> 
     </ScrollView>
   );
 }
@@ -22,7 +29,7 @@ export default function ExpenseListScreen() {
  
 const Card = ({totalExpense, last30DaysExpense}: {totalExpense: number, last30DaysExpense: number}) => {
   return (
-    <View className="mx-6"> 
+    <View className="mx-6 mb-4"> 
       <View className="h-60 w-full rounded-xl mt-6 overflow-hidden relative">
     
         <ImageBackground
@@ -63,3 +70,51 @@ const Card = ({totalExpense, last30DaysExpense}: {totalExpense: number, last30Da
     </View> 
   )
 }
+
+
+
+const ExpenseItem = ({ title, id, setRefresh, price, category }: any) => {
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleConfirm = async () => {
+    try {
+        // await removeCategory(id);
+        setModalVisible(false);
+        // CRITICAL: Trigger parent refresh after delete
+        setRefresh((prev: number) => prev + 1);
+        console.log("deleted successfully", id);
+    } catch (err) {
+        console.error("Delete failed", err);
+    }
+  };
+
+  return (
+    <View className="flex-row items-center justify-between p-6 bg-white rounded-xl mb-4 shadow-sm mx-6">
+      <View className="flex-row items-center gap-4">
+        <View style={{ width: 45, height: 45, borderRadius: 22, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' }}>
+          <Image source={require("../../assets/expense.png")} style={{ width: 24, height: 24, tintColor: 'white' }} />
+        </View>
+        <View>
+          <Text className="text-lg font-bold text-gray-800">{title}</Text>
+          <Text className="text-sm font-normal tracking-wide text-gray-800">{category}</Text>
+        </View>
+      </View>
+      <View className="flex-row gap-4">
+        <Text className="text-lg font-bold text-gray-800">${price}</Text>
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <Ionicons name="trash" size={24} color="red" />
+      </TouchableOpacity>
+      </View>
+
+      <CustomModal
+        visible={modalVisible}
+        title="Confirm Delete!"
+        message={`Are you sure you want to delete "${title}"?`}
+        type="confirm"
+        confirmText="Delete"
+        onConfirm={handleConfirm}
+        onCancel={() => setModalVisible(false)}
+      />
+    </View>
+  );
+};
