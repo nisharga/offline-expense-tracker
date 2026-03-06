@@ -84,7 +84,7 @@ export default function AddCategoryScreen() {
 const CategoryCard = ({ setRefresh }: any) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [categoryName, setCategoryName] = useState("");
-const [isRecognizing, setIsRecognizing] = useState(false);
+  const [isRecognizing, setIsRecognizing] = useState(false);
 
   const handleAddCategory = async () => {
     if (!categoryName.trim()) return;

@@ -1,17 +1,88 @@
+import { storage } from "@/context/storage";
 import { COLORS } from "@/global/color";
 import CustomModal from "@/global/custom-modal";
 import { PageHeader } from "@/global/page-header";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Image, ImageBackground, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Image, ImageBackground, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown, FlipInYRight } from "react-native-reanimated";
 
 export default function ExpenseListScreen() { 
+  const [expenses, setExpenses] = useState([]);
+  const [totalExpense, setTotalExpense] = useState(0);
+  const [last30DaysExpense, setLast30DaysExpense] = useState(0);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); 
+
+   const loadCategories = async () => {
+      try {
+        const storedExpenses = await storage.getAllExpense();
+        setExpenses(Array.isArray(storedExpenses) ? storedExpenses : [] as any);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      }
+   };
+
+   const calculateTotalExpense = async () => {
+    try {
+        const storedExpenses = await storage.totalExpense();
+        setTotalExpense(storedExpenses);
+      } catch (error) {
+        console.error("Failed to load expense:", error);
+      }
+   };
+
+   const calculateLast30DaysExpense = async () => {
+      try {
+        const storedExpenses = await storage.totalOfLast30Day();
+        setLast30DaysExpense(storedExpenses);
+      } catch (error) {
+        console.error("Failed to load expense:", error);
+      }
+   };
+
+
+    const fetchData = useCallback(async () => {
+      setRefreshing(true);
+        try {
+          // Run all three in parallel for better performance
+          await Promise.all([
+            loadCategories(),
+            calculateTotalExpense(),
+            calculateLast30DaysExpense()
+          ]);
+        } catch (error) {
+          console.error("Error loading data:", error);
+        } finally {
+          setRefreshing(false);
+        }
+    }, []);
+
+// This fires every single time the user navigates TO this screen
+useFocusEffect(
+  useCallback(() => {
+    fetchData();
+  }, [fetchData, refreshTrigger])
+);
+
+// Update your onRefresh to use the same logic
+const onRefresh = useCallback(() => {
+  fetchData();
+}, [fetchData]);
+
   return (
     <ScrollView 
       className="flex-1 bg-gray-50" 
       stickyHeaderIndices={[0]}
-      
+      refreshControl={
+              <RefreshControl
+                refreshing={refreshing} 
+                onRefresh={onRefresh} 
+                tintColor={COLORS.primary} 
+              />
+            }
     >
        <PageHeader 
            title="View Expenses"  
@@ -19,14 +90,21 @@ export default function ExpenseListScreen() {
          />
          <View className="w-full h-[20px] rounded-b-[20px] bg-white"></View>
 
-      <Card totalExpense={9000} last30DaysExpense={1000}/>
+      <Card totalExpense={totalExpense} last30DaysExpense={last30DaysExpense}/>
 
-      <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
-        category="Category 1" price="100" index={1}/> 
-        <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
-        category="Category 1" price="100" index={2}/> 
-        <ExpenseItem title="Expense 1" id="1" setRefresh={() => {}} 
-        category="Category 1" price="100" index={3}/> 
+      {
+        expenses.map((expense: any, index: number) => (
+          <ExpenseItem 
+          key={expense.id} 
+          title={expense?.name} 
+          id={expense.id} 
+          setRefresh={setRefreshTrigger} 
+          category={expense?.category?.name} 
+          price={expense?.amount} 
+          index={index}/> 
+        ))
+      }
+       
     </ScrollView>
   );
 }
@@ -49,12 +127,12 @@ const Card = ({totalExpense, last30DaysExpense}: {totalExpense: number, last30Da
           <View className="flex-row justify-between h-32 items-center">
             <View className="p-4">
             <Text className="text-white font-medium tracking-normal text-xs text-gray-400 mb-2">Total Expense Balance</Text>
-             <Text className="text-white text-3xl font-medium tracking-normal text-gray-400 ">{totalExpense}$</Text>
+             <Text className="text-white text-3xl font-medium tracking-normal text-gray-400 ">{totalExpense}৳</Text>
           </View>
 
           <View className="p-4 text-right">
             <Text className="text-white font-medium tracking-normal text-xs text-gray-400 mb-2 text-right">Last 30 days Expense</Text>
-             <Text className="text-white text-3xl font-medium tracking-normal text-gray-400 ">{last30DaysExpense}$</Text>
+             <Text className="text-white text-3xl font-medium tracking-normal text-gray-400 ">{last30DaysExpense}৳</Text>
           </View>
           </View>
 
@@ -83,11 +161,10 @@ const ExpenseItem = ({ title, id, setRefresh, price, category, index }: any) => 
 
   const handleConfirm = async () => {
     try {
-        // await removeCategory(id);
+         await storage.deleteSingleExpense(id); 
         setModalVisible(false);
         // CRITICAL: Trigger parent refresh after delete
         setRefresh((prev: number) => prev + 1);
-        console.log("deleted successfully", id);
     } catch (err) {
         console.error("Delete failed", err);
     }
@@ -105,7 +182,7 @@ const ExpenseItem = ({ title, id, setRefresh, price, category, index }: any) => 
         </View>
       </View>
       <View className="flex-row gap-4">
-        <Text className="text-lg font-bold text-gray-800">${price}</Text>
+        <Text className="text-lg font-bold text-gray-800">৳{price}</Text>
         <TouchableOpacity onPress={() => setModalVisible(true)}>
         <Ionicons name="trash" size={24} color="red" />
       </TouchableOpacity>

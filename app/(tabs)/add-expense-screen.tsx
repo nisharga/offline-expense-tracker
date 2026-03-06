@@ -1,4 +1,5 @@
 import { getAllCategories } from "@/context/category";
+import { storage } from "@/context/storage";
 import { COLORS } from "@/global/color";
 import CustomModal from "@/global/custom-modal";
 import { PageHeader } from "@/global/page-header";
@@ -39,9 +40,9 @@ export default function AddExpenseScreen() {
 
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [isDropdownOpen]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation Logic
     if (!expenseName.trim()) {
       setError("Please enter an expense name");
@@ -66,15 +67,16 @@ export default function AddExpenseScreen() {
       date: new Date().toISOString(),
     };
 
-    
+    // NEW: Save to Storage
+    await storage.createExpense(expenseData);
 
     console.log("Saving Expense:", expenseData);
+
     Keyboard.dismiss();
     setModalVisible(true);
     setExpenseName("");
     setExpenseAmount("");
     setSelectedCategory(null);
-    
     
     // Logic for saving to AsyncStorage would go here next
   };
