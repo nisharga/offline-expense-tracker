@@ -15,7 +15,8 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSFaceIDUsageDescription": "This app uses FaceID to secure your financial data.",
         "NSMicrophoneUsageDescription": "This app requires microphone access to record your expenses.",
-        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition to convert your voice to expense text."
+        "NSSpeechRecognitionUsageDescription": "This app uses speech recognition to convert your voice to expense text.",
+        "NSUserNotificationsUsageDescription": "We need to send you daily reminders so you don't forget to log your expenses."
       } 
     },
     "android": {
@@ -30,7 +31,8 @@
       "package": "com.nisharga.sharetasking.offlineexpensetracker",
       "permissions": [
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "USE_FINGERPRINT",
+        "android.permission.SCHEDULE_EXACT_ALARM"
       ]
     },
     "web": {
