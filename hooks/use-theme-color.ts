@@ -19,3 +19,10 @@ export function useThemeColor(
     return Colors[theme][colorName];
   }
 }
+
+export const getRandomVibrantColor = () => {
+  // Generate a random Hue (0-360)
+  const hue = Math.floor(Math.random() * 360);
+  // Keep Saturation high (70-90%) and Lightness medium (50-60%) for vibrancy
+  return `hsl(${hue}, 80%, 55%)`;
+};
