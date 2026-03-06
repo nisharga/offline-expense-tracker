@@ -69,9 +69,7 @@ export default function AddExpenseScreen() {
 
     // NEW: Save to Storage
     await storage.createExpense(expenseData);
-
-    console.log("Saving Expense:", expenseData);
-
+ 
     Keyboard.dismiss();
     setModalVisible(true);
     setExpenseName("");
