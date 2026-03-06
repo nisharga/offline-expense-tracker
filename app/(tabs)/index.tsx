@@ -3,25 +3,26 @@ import { PageHeader } from '@/global/page-header';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
+import { PieChart } from "react-native-gifted-charts";
 
 // 1. Define your data per month
-// const MONTHLY_DATA: any = {
-//   'Jan': [
-//     { value: 50, color: '#0000ff', text: '50%' },
-//     { value: 30, color: '#79D2DE', text: '30%' },
-//     { value: 20, color: '#ED6665', text: '20%' },
-//   ],
-//   'Feb': [
-//     { value: 10, color: '#0000ff', text: '10%' },
-//     { value: 60, color: '#79D2DE', text: '60%' },
-//     { value: 30, color: '#ED6665', text: '30%' },
-//   ],
-//   'Mar': [
-//     { value: 40, color: '#0000ff', text: '40%' },
-//     { value: 40, color: '#79D2DE', text: '40%' },
-//     { value: 20, color: '#ED6665', text: '20%' },
-//   ],
-// };
+const MONTHLY_DATA: any = {
+  'Jan': [
+    { value: 50, color: '#0000ff', text: '50%' },
+    { value: 30, color: '#79D2DE', text: '30%' },
+    { value: 20, color: '#ED6665', text: '20%' },
+  ],
+  'Feb': [
+    { value: 10, color: '#0000ff', text: '10%' },
+    { value: 60, color: '#79D2DE', text: '60%' },
+    { value: 30, color: '#ED6665', text: '30%' },
+  ],
+  'Mar': [
+    { value: 40, color: '#0000ff', text: '40%' },
+    { value: 40, color: '#79D2DE', text: '40%' },
+    { value: 20, color: '#ED6665', text: '20%' },
+  ],
+};
 
 const dropdownData: any = [
   { label: 'January', value: 0 },
@@ -45,7 +46,22 @@ export default function HomeScreen() {
   console.log('month', month);
   console.log('data', data);
   
- // Function to load data
+
+  // 1. TRANSFORM the 'data' state into PieChart format
+  const chartData = Object.entries(data).map(([name, total], index) => {
+    const colors = ['#0000ff', '#79D2DE', '#ED6665', '#FFCC00', '#FF5733'];
+    return {
+      value: total,
+      label: name,
+      color: colors[index % colors.length], // Rotate through colors
+      text: `${name}`,
+    };
+  });
+
+  // 2. Calculate Total for the center label
+  const totalAmount = chartData.reduce((acc, curr: any) => acc + curr.value, 0);
+
+  // Function to load data
   const loadData = async () => {
     try {
       const storedCategories = await storage.getCategoryTotalsByMonth(month);
@@ -96,32 +112,34 @@ export default function HomeScreen() {
 
         {/* --- PIE CHART --- */}
         {/* Adjusted radius and innerRadius for a much larger, better look */}
-        {/* <PieChart
+        {chartData.length > 0 ? (
+        <PieChart
           donut 
-              isAnimated={true}
-              animationDuration={2000}
-          radius={120}           // Total size of the chart
-          innerRadius={90}        // Size of the hole (donut)
-          textSize={14}
-          fontWeight="bold"
-          data={MONTHLY_DATA[month]}
-          
+          isAnimated={true}
+          animationDuration={1000}
+          radius={120}           
+          innerRadius={90}        
+          data={chartData} // <--- USE THE TRANSFORMED DATA
           centerLabelComponent={() => (
             <View className="items-center justify-center">
-              <Text className="text-gray-400 text-sm font-medium">Amount</Text>
-              <Text className="text-xl font-bold">${
-                MONTHLY_DATA[month].reduce((acc: any, curr: any) => acc + curr.value, 0)
-              }</Text>
+              <Text className="text-gray-400 text-sm font-medium">Total</Text>
+              <Text className="text-xl font-bold">${totalAmount}</Text>
             </View>
           )}
-        /> */}
+        />
+      ) : (
+        <View className="h-[240px] items-center justify-center">
+          <Text className="text-gray-400">No data for this month</Text>
+        </View>
+      )}
 
           {/* --- LEGEND --- */}
-          {/* <View className="flex-row justify-center mt-8 gap-4">
-            <LegendItem color="#0000ff" label="Food" />
-            <LegendItem color="#79D2DE" label="Rent" />
-            <LegendItem color="#ED6665" label="Other" />
-          </View> */}
+         {/* --- DYNAMIC LEGEND --- */}
+        <View className="flex-row flex-wrap justify-center mt-8 gap-4">
+          {chartData.map((item, index) => (
+            <LegendItem key={index} color={item.color} label={item.label} />
+          ))}
+        </View>
         </View>
       </View>
 
