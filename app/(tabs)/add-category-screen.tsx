@@ -4,6 +4,7 @@ import CustomModal from "@/global/custom-modal";
 import { PageHeader } from "@/global/page-header";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import { useCallback, useEffect, useState } from "react";
 import { Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Modal from 'react-native-modal';
@@ -83,6 +84,7 @@ export default function AddCategoryScreen() {
 const CategoryCard = ({ setRefresh }: any) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [categoryName, setCategoryName] = useState("");
+const [isRecognizing, setIsRecognizing] = useState(false);
 
   const handleAddCategory = async () => {
     if (!categoryName.trim()) return;
@@ -97,6 +99,64 @@ const CategoryCard = ({ setRefresh }: any) => {
       console.error("Error saving category:", error);
     }
   };
+  
+
+  // start
+  useSpeechRecognitionEvent("start", () => {
+    setIsRecognizing(true);
+  })
+
+ // set this: event.results[0].transcript
+  useSpeechRecognitionEvent("result", (event) => {  
+  if (event.results && event.results.length > 0) {
+    const text = event.results[0].transcript; 
+    setCategoryName(text);
+  }
+  })
+
+  // error event
+  useSpeechRecognitionEvent("error", (event) => {
+    console.log("❌ Error:", event.error, event.message);
+    setIsRecognizing(false);
+  });
+
+  // end event
+  useSpeechRecognitionEvent("end", () => { 
+    setIsRecognizing(false);
+  });
+
+  // start listening
+  const startListening = async () => {
+    try {
+      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!result.granted) {
+        console.log("Permission denied");
+        return;
+      }
+
+      setCategoryName(""); 
+
+      ExpoSpeechRecognitionModule.start({
+        lang: "en-US",
+        interimResults: true, 
+        continuous: false,
+      })
+    } catch (err) {
+      console.error("Failed to start:", err);
+    }
+  };
+
+  // stop listening
+  const stopListening = async () => {
+    try {
+      await ExpoSpeechRecognitionModule.stop();
+      setIsRecognizing(false);
+    } catch (err) {
+      console.error("Failed to stop:", err);
+    }
+  };
+
+
 
   return (
     <Animated.View entering={ZoomIn.duration(2000).springify()} className="p-6 rounded-xl shadow-sm mt-4 mx-6 overflow-hidden mb-4">
@@ -116,8 +176,8 @@ const CategoryCard = ({ setRefresh }: any) => {
       </View>
 
       <Modal isVisible={isModalVisible} onBackdropPress={() => setModalVisible(false)}>
-        <View className="bg-white p-6 rounded-2xl">
-            <Text className="text-xl font-bold mb-4 text-center">New Category</Text>
+        <View className="bg-white p-6 rounded-2xl relative">
+            <Text className="text-xl font-bold mb-4 text-center">New Categoryss</Text>
             <TextInput
               placeholder="Enter Category Name"
               className="border border-gray-200 p-4 rounded-xl mb-4"
@@ -125,6 +185,16 @@ const CategoryCard = ({ setRefresh }: any) => {
               onChangeText={setCategoryName}
               autoFocus
             />
+            <TouchableOpacity className="absolute right-8 top-20"
+            onPress={isRecognizing ? stopListening : startListening}>
+              {
+                isRecognizing ? (
+                  <Ionicons name="mic" size={32} className="text-gray-100" />
+                ) : (
+                  <Ionicons name="mic-outline" size={32} className="text-gray-100" />
+                )
+              }
+            </TouchableOpacity>
             <View className="flex-row gap-2">
                 <TouchableOpacity className="flex-1 p-4 rounded-xl bg-gray-100" onPress={() => setModalVisible(false)}>
                     <Text className="text-center font-bold text-gray-600">Cancel</Text>
