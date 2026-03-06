@@ -1,6 +1,7 @@
 import { storage } from '@/context/storage';
 import { PageHeader } from '@/global/page-header';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, Text, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { PieChart } from "react-native-gifted-charts";
@@ -49,7 +50,12 @@ export default function HomeScreen() {
 
   // 1. TRANSFORM the 'data' state into PieChart format
   const chartData = Object.entries(data).map(([name, total], index) => {
-    const colors = ['#0000ff', '#79D2DE', '#ED6665', '#FFCC00', '#FF5733'];
+   const colors = [
+  '#0000ff', '#79D2DE', '#ED6665', '#FFCC00', '#FF5733', // Original 5
+  '#2ecc71', '#9b59b6', '#34495e', '#16a085', '#27ae60', // Greens, Purples, Darks
+  '#f1c40f', '#e67e22', '#e74c3c', '#ecf0f1', '#95a5a6', // Brighter & Grays
+  '#d35400', '#c0392b', '#bdc3c7', '#7f8c8d', '#2980b9'  // Deep Earth & Blues
+];
     return {
       value: total,
       label: name,
@@ -69,12 +75,15 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("Failed to load categories:", error);
     }  
-  };
-
- useEffect(() => {
-    loadData();
-  }, [month]);
+  }; 
   
+  // This fires every single time the user navigates TO this screen
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [month])
+  );
+
   return (
     <ScrollView className="flex-1 bg-gray-50" stickyHeaderIndices={[0]}>
       <PageHeader 
@@ -130,6 +139,7 @@ export default function HomeScreen() {
       ) : (
         <View className="h-[240px] items-center justify-center">
           <Text className="text-gray-400">No data for this month</Text>
+          <Text className="text-gray-400">Create Your Expenses first</Text>
         </View>
       )}
 
